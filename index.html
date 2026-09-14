@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #f0f0f0;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .stats {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .week-grid {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .day-column {
+            border-bottom: 1px solid #eee;
+        }
+        
+        .day-header {
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .task-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: background 0.2s;
+        }
+        
+        .task-item:hover {
+            background: #f9f9f9;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: #4CAF50;
+        }
+        
+        .task-content {
+            flex: 1;
+        }
+        
+        .task-time {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.95rem;
+        }
+        
+        .task-course {
+            margin-top: 5px;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .task-type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .type-revision {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .type-practice {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .type-protected {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .task-item.completed {
+            opacity: 0.6;
+        }
+        
+        .task-item.completed .task-course {
+            text-decoration: line-through;
+        }
+        
+        .task-item.protected {
+            background: #f9f9f9;
+        }
+        
+        .task-item.protected .task-course {
+            color: #999;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            .stats {
+                flex-direction: column;
+            }
+            .task-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Weekly Study Planner</h1>
+            <p id="week-info">Loading...</p>
+        </header>
+
+        <div id="message"></div>
+
+        <div class="controls">
+            <button class="btn-primary" id="generate-btn" onclick="generatePlan()">
+                Generate New Plan
+            </button>
+            <button class="btn-secondary" onclick="loadPlan()">
+                Refresh
+            </button>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="stat-total">-</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-completed">-</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-rate">-</div>
+                <div class="stat-label">Progress</div>
+            </div>
+        </div>
+
+        <div class="week-grid" id="week-grid">
+            <div class="loading">Loading study plan...</div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Update this with your Render URL after deployment
+        const API_BASE = window.location.hostname === 'localhost' ?
+            'http://localhost:8000' :
+            'https://study-agent-planner.onrender.com'; // Replace with your Render URL
+
+        // State
+        let tasks = [];
+
+        // Load plan on page load
+        document.addEventListener('DOMContentLoaded', loadPlan);
+
+        // Fetch study plan
+        async function loadPlan() {
+            try {
+                showMessage('Loading study plan...', 'info');
+                const response = await fetch(`${API_BASE}/plan`);
+                const data = await response.json();
+
+                tasks = data.tasks;
+                renderPlan(tasks);
+                updateStats(data);
+                clearMessage();
+            } catch (error) {
+                showMessage('Error loading plan: ' + error.message, 'error');
+            }
+        }
+
+        // Generate new plan
+        async function generatePlan() {
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+
+            try {
+                showMessage('Generating new study plan (this may take 30-60 seconds)...', 'info');
+
+                const response = await fetch(`${API_BASE}/generate-plan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        skip_embeddings: true
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to generate plan');
+
+                const data = await response.json();
+                showMessage('New study plan generated successfully!', 'success');
+
+                // Reload plan
+                setTimeout(() => loadPlan(), 1000);
+            } catch (error) {
+                showMessage('Error generating plan: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate New Plan';
+            }
+        }
+
+        // Toggle task status
+        async function toggleTask(taskId, currentStatus) {
+            const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+
+            try {
+                await fetch(`${API_BASE}/task/${taskId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                });
+
+                // Update local state
+                const task = tasks.find(t => t.id === taskId);
+                if (task) task.status = newStatus;
+
+                renderPlan(tasks);
+                loadStats();
+            } catch (error) {
+                showMessage('Error updating task: ' + error.message, 'error');
+            }
+        }
+
+        // Render plan
+        function renderPlan(tasks) {
+            const grid = document.getElementById('week-grid');
+
+            if (!tasks || tasks.length === 0) {
+                grid.innerHTML = '<div class="loading">No tasks found. Click "Generate New Plan" to create one.</div>';
+                return;
+            }
+
+            // Group by day
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const grouped = {};
+
+            days.forEach(day => grouped[day] = []);
+            tasks.forEach(task => {
+                if (grouped[task.day]) {
+                    grouped[task.day].push(task);
+                }
+            });
+
+            // Render
+            let html = '';
+            days.forEach(day => {
+                        const dayTasks = grouped[day];
+                        html += `<div class="day-column">
+                    <div class="day-header">${day}</div>`;
+
+                        if (dayTasks.length === 0) {
+                            html += `<div class="task-item">
+                        <div class="task-content">
+                            <div class="task-course" style="color: #999;">No tasks scheduled</div>
+                        </div>
+                    </div>`;
+                        } else {
+                            dayTasks.forEach(task => {
+                                        const isProtected = task.task_type === 'protected';
+                                        const isCompleted = task.status === 'completed';
+                                        const courseName = task.course_name || 'Protected Time';
+
+                                        html += `<div class="task-item ${isCompleted ? 'completed' : ''} ${isProtected ? 'protected' : ''}">
+                            ${!isProtected ? `<input type="checkbox" class="task-checkbox"
+                                ${isCompleted ? 'checked' : ''}
+                                onchange="toggleTask('${task.id}', '${task.status}')">` : ''}
+                            <div class="task-content">
+                                <div class="task-time">${task.time_slot}</div>
+                                <div class="task-course">${courseName}</div>
+                                <span class="task-type type-${task.task_type}">${task.task_type}</span>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                html += '</div>';
+            });
+
+            grid.innerHTML = html;
+        }
+
+        // Update stats
+        function updateStats(data) {
+            document.getElementById('stat-total').textContent = data.total_tasks;
+            document.getElementById('stat-completed').textContent = data.completed_tasks;
+
+            const rate = data.total_tasks > 0
+                ? Math.round((data.completed_tasks / data.total_tasks) * 100)
+                : 0;
+            document.getElementById('stat-rate').textContent = rate + '%';
+
+            // Update week info
+            document.getElementById('week-info').textContent = `Week of ${data.week_start}`;
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const data = await response.json();
+                updateStats({
+                    total_tasks: data.overall.total,
+                    completed_tasks: data.overall.completed,
+                    week_start: data.week
+                });
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            if (type === 'error') {
+                msg.innerHTML = `<div class="error">${text}</div>`;
+            } else if (type === 'success') {
+                msg.innerHTML = `<div class="success">${text}</div>`;
+            } else {
+                msg.innerHTML = `<div class="loading">${text}</div>`;
+            }
+        }
+
+        // Clear message
+        function clearMessage() {
+            document.getElementById('message').innerHTML = '';
+        }
+    </script>
+</body>
+
+</html>

@@ -105,12 +105,20 @@ async def generate_plan(request: GeneratePlanRequest = GeneratePlanRequest()):
         Summary of generated plan
     """
     try:
-        periode_path = Path(r"C:\study-agent-planner\Periode-1")
+        import os
 
-        if not periode_path.exists():
-            raise HTTPException(status_code=500, detail="Course materials path not found")
+        # Use environment variable for course materials path, or default
+        periode_path = os.getenv("COURSE_MATERIALS_PATH", r"C:\study-agent-planner\Periode-1")
 
-        pipeline = StudyPlannerPipeline(str(periode_path))
+        if not Path(periode_path).exists():
+            # On Render, generate plan without course materials (use cached data)
+            return {
+                "status": "error",
+                "message": "Course materials not available on this environment. Use local development to generate plans.",
+                "hint": "The /plan, /courses, /stats, and /task endpoints still work!"
+            }
+
+        pipeline = StudyPlannerPipeline(periode_path)
         result = pipeline.run(
             skip_embeddings=request.skip_embeddings,
             save_to_db=True
